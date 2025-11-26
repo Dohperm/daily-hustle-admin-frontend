@@ -1,27 +1,51 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import OTPModal from "../components/OTPModal";
+import { toast } from "../components/Toast";
 
 export default function Login() {
-  const [credentials, setCredentials] = useState({ email: "", password: "" });
+  const [credentials, setCredentials] = useState({ identifier: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [showOTP, setShowOTP] = useState(false);
-  const { login } = useAuth();
+  const [otpMessage, setOtpMessage] = useState("");
+  const { login, validateLogin } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     
-    // Demo login - show OTP modal after credentials
-    setTimeout(() => {
+    try {
+      const result = await login(credentials.identifier, credentials.password);
+      if (result.success && result.requiresOTP) {
+        setOtpMessage(result.message);
+        setShowOTP(true);
+      } else if (!result.success) {
+        toast.error(result.message || "Login failed");
+      }
+    } catch (err) {
+      toast.error("An error occurred during login");
+    } finally {
       setLoading(false);
-      setShowOTP(true);
-    }, 500);
+    }
   };
 
-  const handleOTPVerify = () => {
-    login(credentials.email, credentials.password);
-    setShowOTP(false);
+  const handleOTPVerify = async (otp) => {
+    setLoading(true);
+    
+    try {
+      const result = await validateLogin(credentials.identifier, credentials.password, otp);
+      if (!result.success) {
+        toast.error(result.message || "OTP validation failed");
+        return false;
+      }
+      toast.success("Login successful!");
+      return true;
+    } catch (err) {
+      toast.error("An error occurred during OTP validation");
+      return false;
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -39,8 +63,8 @@ export default function Login() {
               type="email"
               className="form-control"
               placeholder="Enter your email"
-              value={credentials.email}
-              onChange={(e) => setCredentials(prev => ({ ...prev, email: e.target.value }))}
+              value={credentials.identifier}
+              onChange={(e) => setCredentials(prev => ({ ...prev, identifier: e.target.value }))}
               required
             />
           </div>
@@ -72,6 +96,8 @@ export default function Login() {
         isOpen={showOTP}
         onClose={() => setShowOTP(false)}
         onVerify={handleOTPVerify}
+        message={otpMessage}
+        loading={loading}
       />
     </div>
   );

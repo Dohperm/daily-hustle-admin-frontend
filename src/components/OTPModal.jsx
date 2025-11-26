@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 
-export default function OTPModal({ isOpen, onClose, onVerify }) {
+export default function OTPModal({ isOpen, onClose, onVerify, message, loading: externalLoading }) {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
@@ -52,12 +52,15 @@ export default function OTPModal({ isOpen, onClose, onVerify }) {
     e.preventDefault();
     setLoading(true);
     
-    // Demo - any OTP works
-    setTimeout(() => {
-      onVerify();
-      setLoading(false);
+    const otpCode = otp.join('');
+    const success = await onVerify(otpCode);
+    
+    if (success) {
       setOtp(['', '', '', '', '', '']);
-    }, 1000);
+      onClose();
+    }
+    
+    setLoading(false);
   };
 
   const handleResend = async () => {
@@ -87,7 +90,7 @@ export default function OTPModal({ isOpen, onClose, onVerify }) {
         <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📧</div>
         <h3 className="card-title text-center mb-2">Check your email</h3>
         <p className="text-center text-muted mb-4">
-          Enter the verification code sent to your email to access your account.
+          {message || "Enter the verification code sent to your email to access your account."}
         </p>
         
         <form onSubmit={handleSubmit}>
@@ -121,14 +124,14 @@ export default function OTPModal({ isOpen, onClose, onVerify }) {
           <button
             type="submit"
             className="btn btn-primary"
-            disabled={loading || otp.some(digit => !digit)}
+            disabled={loading || externalLoading || otp.some(digit => !digit)}
             style={{ 
               width: '100%', 
               marginBottom: '1rem',
               fontFamily: 'Poppins, system-ui, sans-serif'
             }}
           >
-            {loading ? 'Verifying...' : 'Verify'}
+            {(loading || externalLoading) ? 'Verifying...' : 'Verify'}
           </button>
         </form>
 

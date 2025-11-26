@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = '/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -44,8 +44,9 @@ export const dashboardAPI = {
 
 // Auth API
 export const authAPI = {
-  login: (email, password) => api.post('/auth/login', { email, password }),
+  login: (identifier, password) => api.post('/auths/admins/login', { identifier, password }),
+  validateLogin: (identifier, password, token) => api.post('/auths/admins/validate-login', { identifier, password, token }),
 }
 
-export { api }
+export { api, API_BASE_URL }
 export default api
