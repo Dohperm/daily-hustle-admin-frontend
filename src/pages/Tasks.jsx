@@ -94,8 +94,11 @@ export default function Tasks() {
   };
 
   const filteredTasks = (tasks || []).filter(task => {
-    const matchesSearch = task.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         task.advertiser?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = !searchTerm || 
+                         task.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         task.advertiser?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         task.advertiser?.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         task.advertiser?.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filter === "all" || task.status === filter;
     return matchesSearch && matchesFilter;
   });
