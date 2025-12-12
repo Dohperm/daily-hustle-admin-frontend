@@ -12,6 +12,8 @@ export default function TaskSubmissions() {
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState("all");
   const [showRejectModal, setShowRejectModal] = useState(null);
+  const [showImageModal, setShowImageModal] = useState(null);
+  const [imageZoom, setImageZoom] = useState(1);
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -141,7 +143,15 @@ export default function TaskSubmissions() {
                   </td>
                   <td>
                     {submission.src && (
-                      <img src={submission.src} alt="Proof" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px' }} />
+                      <img 
+                        src={submission.src} 
+                        alt="Proof" 
+                        style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', cursor: 'pointer' }} 
+                        onClick={() => {
+                          setShowImageModal(submission.src);
+                          setImageZoom(1);
+                        }}
+                      />
                     )}
                   </td>
                   <td>
@@ -231,6 +241,121 @@ export default function TaskSubmissions() {
         message="Please provide a reason for rejecting this submission:"
         placeholder="Enter rejection reason..."
       />
+
+      {/* Image Modal */}
+      {showImageModal && (
+        <div 
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.9)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '2rem',
+            overflow: 'auto'
+          }}
+          onClick={() => setShowImageModal(null)}
+        >
+          <img 
+            src={showImageModal} 
+            alt="Proof enlarged" 
+            style={{ 
+              maxWidth: '90%', 
+              maxHeight: '90%', 
+              borderRadius: '8px',
+              transform: `scale(${imageZoom})`,
+              transition: 'transform 0.2s',
+              cursor: 'zoom-in'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            onClick={() => setShowImageModal(null)}
+            style={{
+              position: 'absolute',
+              top: '1rem',
+              right: '1rem',
+              background: 'white',
+              border: 'none',
+              borderRadius: '50%',
+              width: '40px',
+              height: '40px',
+              cursor: 'pointer',
+              fontSize: '1.5rem',
+              zIndex: 10000
+            }}
+          >
+            ×
+          </button>
+          <div style={{
+            position: 'absolute',
+            bottom: '2rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex',
+            gap: '0.5rem',
+            background: 'rgba(255, 255, 255, 0.9)',
+            padding: '0.5rem',
+            borderRadius: '8px',
+            zIndex: 10000
+          }}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setImageZoom(Math.max(0.5, imageZoom - 0.25));
+              }}
+              style={{
+                background: 'var(--dh-primary)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '0.5rem 1rem',
+                cursor: 'pointer',
+                fontSize: '1rem'
+              }}
+            >
+              <i className="fas fa-minus"></i>
+            </button>
+            <span style={{ padding: '0.5rem 1rem', fontWeight: '600' }}>{Math.round(imageZoom * 100)}%</span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setImageZoom(Math.min(3, imageZoom + 0.25));
+              }}
+              style={{
+                background: 'var(--dh-primary)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '0.5rem 1rem',
+                cursor: 'pointer',
+                fontSize: '1rem'
+              }}
+            >
+              <i className="fas fa-plus"></i>
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setImageZoom(1);
+              }}
+              style={{
+                background: '#6b7280',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '0.5rem 1rem',
+                cursor: 'pointer',
+                fontSize: '0.875rem'
+              }}
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

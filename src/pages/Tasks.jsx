@@ -310,9 +310,15 @@ export default function Tasks() {
       <ConfirmModal 
         isOpen={showDeleteModal !== null}
         onClose={() => setShowDeleteModal(null)}
-        onConfirm={() => {
-          setTasks(prev => prev.filter(t => t.id !== showDeleteModal));
-          setShowDeleteModal(null);
+        onConfirm={async () => {
+          try {
+            await api.delete(`/tasks/${showDeleteModal}/admins`);
+            setTasks(prev => prev.filter(t => t._id !== showDeleteModal));
+            setShowDeleteModal(null);
+          } catch (error) {
+            console.error('Error deleting task:', error);
+            alert('Failed to delete task');
+          }
         }}
         title="Delete Task"
         message="Are you sure you want to delete this task? This action cannot be undone."
