@@ -1,20 +1,35 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import InputModal from "../components/InputModal";
+import Spinner from "../components/Spinner";
+import { api } from "../services/api";
 
 export default function TaskSubmissions() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [submissions, setSubmissions] = useState([
-    { id: 1, user: 'john_doe', submittedAt: '2024-02-15T10:30:00Z', status: 'pending', proofText: 'Posted on Instagram with 2.5k views and 150 likes', proofImage: 'https://via.placeholder.com/300x200' },
-    { id: 2, user: 'jane_smith', submittedAt: '2024-02-14T15:45:00Z', status: 'approved', proofText: 'Created engaging post with product placement, got great engagement', proofImage: 'https://via.placeholder.com/300x200' },
-    { id: 3, user: 'mike_johnson', submittedAt: '2024-02-13T09:20:00Z', status: 'rejected', proofText: 'Posted as requested but image quality was low', proofImage: 'https://via.placeholder.com/300x200' },
-    { id: 4, user: 'sarah_wilson', submittedAt: '2024-02-12T14:10:00Z', status: 'pending', proofText: 'High-quality post with all requirements met', proofImage: 'https://via.placeholder.com/300x200' }
-  ]);
+  const [submissions, setSubmissions] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [filter, setFilter] = useState("all");
   const [showRejectModal, setShowRejectModal] = useState(null);
   const itemsPerPage = 10;
+
+  useEffect(() => {
+    fetchSubmissions();
+  }, [id]);
+
+  const fetchSubmissions = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/tasks/submissions/admins', { params: { task_id: id } });
+      setSubmissions(response.data.data?.data || []);
+    } catch (error) {
+      console.error('Error fetching submissions:', error);
+      setSubmissions([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmissionAction = (submissionId, action) => {
     if (action === 'view') {
@@ -30,7 +45,7 @@ export default function TaskSubmissions() {
 
   const filteredSubmissions = submissions.filter(submission => {
     if (filter === "all") return true;
-    return submission.status === filter;
+    return submission.approval_status === filter;
   });
 
   const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
@@ -41,10 +56,13 @@ export default function TaskSubmissions() {
     setCurrentPage(page);
   };
 
-  const handleReject = (reason) => {
-    setSubmissions(prev => prev.map(s => 
-      s.id === showRejectModal ? { ...s, status: 'rejected' } : s
-    ));
+  const handleReject = async (reason) => {
+    try {
+      // TODO: Call API to reject submission with reason
+      await fetchSubmissions();
+    } catch (error) {
+      console.error('Error rejecting submission:', error);
+    }
     setShowRejectModal(null);
   };
 
@@ -89,56 +107,60 @@ export default function TaskSubmissions() {
                 <th>User</th>
                 <th>Submitted</th>
                 <th>Status</th>
-                <th>Proof Text</th>
+                <th>Proof</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {currentSubmissions.map((submission) => (
-                <tr key={submission.id}>
-                  <td>{submission.user}</td>
-                  <td>{new Date(submission.submittedAt).toLocaleString()}</td>
+              {loading ? (
+                <tr>
+                  <td colSpan="5" className="text-center" style={{ padding: '2rem' }}>
+                    <Spinner size="md" />
+                  </td>
+                </tr>
+              ) : currentSubmissions.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="text-center">No submissions found</td>
+                </tr>
+              ) : currentSubmissions.map((submission) => (
+                <tr key={submission._id}>
+                  <td>{submission.user?.first_name} {submission.user?.last_name}</td>
+                  <td>{new Date(submission.date).toLocaleString()}</td>
                   <td>
                     <span className={`badge ${
-                      submission.status === 'approved' ? 'badge-success' : 
-                      submission.status === 'rejected' ? 'badge-danger' : 
+                      submission.approval_status === 'approved' ? 'badge-success' : 
+                      submission.approval_status === 'rejected' ? 'badge-danger' : 
                       'badge-warning'
                     }`}>
                       <i className={`fas ${
-                        submission.status === 'approved' ? 'fa-check' : 
-                        submission.status === 'rejected' ? 'fa-times' : 
+                        submission.approval_status === 'approved' ? 'fa-check' : 
+                        submission.approval_status === 'rejected' ? 'fa-times' : 
                         'fa-clock'
-                      }`}></i> {submission.status}
+                      }`}></i> {submission.approval_status}
                     </span>
                   </td>
-                  <td style={{ maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {submission.proofText}
+                  <td>
+                    {submission.src && (
+                      <img src={submission.src} alt="Proof" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px' }} />
+                    )}
                   </td>
                   <td>
-                    <div className="d-flex gap-2">
-                      <button
-                        className="btn btn-sm btn-primary"
-                        onClick={() => handleSubmissionAction(submission.id, 'view')}
-                      >
-                        View
-                      </button>
-                      {submission.status === 'pending' && (
-                        <>
-                          <button
-                            className="btn btn-sm btn-success"
-                            onClick={() => handleSubmissionAction(submission.id, 'approve')}
-                          >
-                            Approve
-                          </button>
-                          <button
-                            className="btn btn-sm btn-danger"
-                            onClick={() => handleSubmissionAction(submission.id, 'reject')}
-                          >
-                            Reject
-                          </button>
-                        </>
-                      )}
-                    </div>
+                    {submission.approval_status === 'pending' && (
+                      <div className="d-flex gap-2">
+                        <button
+                          className="btn btn-sm btn-success"
+                          onClick={() => handleSubmissionAction(submission._id, 'approve')}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          className="btn btn-sm btn-danger"
+                          onClick={() => handleSubmissionAction(submission._id, 'reject')}
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
