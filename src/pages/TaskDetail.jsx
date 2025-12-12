@@ -49,7 +49,7 @@ export default function TaskDetail() {
             </div>
 
             {/* Stats Grid */}
-            <div className="stats-grid" style={{ marginBottom: '2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
               <div className="stat-card">
                 <div className="stat-label">Reward per Worker</div>
                 <div className="stat-value" style={{ fontSize: '1.5rem' }}>₦{task.reward?.amount_per_worker?.toLocaleString()}</div>
@@ -113,7 +113,7 @@ export default function TaskDetail() {
         {/* Advertiser Card */}
         <div className="task-detail-sidebar">
           <div className="card">
-            <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>Advertiser Info</h3>
+            <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>Employer Info</h3>
             <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
               <div style={{ 
                 width: '70px', 
