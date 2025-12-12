@@ -1,85 +1,151 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { api } from "../services/api";
+import Spinner from "../components/Spinner";
 
 export default function TaskDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [task, setTask] = useState({
-    id: 1,
-    title: 'Social Media Post',
-    advertiser: 'John Marketing Co.',
-    description: 'Create an engaging Instagram post about our new product launch. The post should include high-quality images, relevant hashtags, and compelling copy that drives engagement.',
-    status: 'active',
-    reward: 500,
-    submissions: 12,
-    requirements: [
-      'Must have at least 1000 followers',
-      'Post must include product image',
-      'Use provided hashtags',
-      'Tag our official account'
-    ],
-    createdAt: '2024-01-15'
-  });
+  const [task, setTask] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchTaskDetail();
+  }, [id]);
+
+  const fetchTaskDetail = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get(`/tasks/${id}/admins`);
+      setTask(response.data.data);
+    } catch (error) {
+      console.error('Error fetching task:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <Spinner size="lg" fullScreen />;
+  if (!task) return <div>Task not found</div>;
 
   return (
     <div className="fade-in">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <button className="btn btn-outline mb-2" onClick={() => navigate('/tasks')}>
-            <i className="fas fa-arrow-left"></i> Back to Tasks
-          </button>
-          <h1 className="card-title">{task.title}</h1>
-        </div>
-        <div className="d-flex gap-3">
-          <button className="btn btn-primary" onClick={() => navigate(`/tasks/${id}/submissions`)}>
-            <i className="fas fa-list"></i> View Submissions ({task.submissions})
-          </button>
+      <button onClick={() => navigate(-1)} className="btn btn-outline mb-4">
+        <i className="fas fa-arrow-left"></i> Back
+      </button>
+
+      {/* Advertiser Card - Top on mobile, side on desktop */}
+      <div className="card" style={{ marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ 
+            width: '60px', 
+            height: '60px', 
+            borderRadius: '50%', 
+            background: 'var(--dh-primary)', 
+            color: 'white', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            fontSize: '1.5rem',
+            fontWeight: '600',
+            flexShrink: 0
+          }}>
+            {task.advertiser?.first_name?.[0]}{task.advertiser?.last_name?.[0]}
+          </div>
+          <div style={{ flex: 1, minWidth: '200px' }}>
+            <h4 style={{ marginBottom: '0.25rem', fontSize: '1.1rem' }}>
+              {task.advertiser?.first_name} {task.advertiser?.last_name}
+            </h4>
+            <p style={{ color: 'var(--dh-muted)', fontSize: '0.9rem', marginBottom: 0 }}>{task.advertiser?.email}</p>
+          </div>
+          <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--dh-muted)' }}>Budget</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: '600' }}>₦{task.reward?.amount?.toLocaleString()}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--dh-muted)' }}>Spent</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: '600' }}>₦{task.reward?.spent?.toLocaleString()}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--dh-muted)' }}>Approval</div>
+              <div style={{ fontSize: '1rem', fontWeight: '500' }}>{task.approval?.mode} ({task.approval?.num_days}d)</div>
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* Main Task Content */}
       <div className="card">
-        <div className="row">
-          <div className="col-md-8">
-            <h3 className="card-title">Task Details</h3>
-            <div className="mb-3">
-              <strong>Advertiser:</strong> {task.advertiser}
-            </div>
-            <div className="mb-3">
-              <strong>Description:</strong>
-              <p className="mt-2">{task.description}</p>
-            </div>
-            <div className="mb-3">
-              <strong>Requirements:</strong>
-              <ul className="mt-2">
-                {task.requirements.map((req, index) => (
-                  <li key={index}>{req}</li>
-                ))}
-              </ul>
-            </div>
+        <h1 className="card-title" style={{ fontSize: '1.5rem' }}>{task.title}</h1>
+        
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+          <span className={`badge ${task.status ? 'badge-success' : 'badge-danger'}`}>
+            {task.status ? 'Active' : 'Inactive'}
+          </span>
+          <span className="badge badge-primary">{task.category}</span>
+          <span className="badge badge-primary">{task.sub_category}</span>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="stats-grid" style={{ marginBottom: '2rem' }}>
+          <div className="stat-card">
+            <div className="stat-label">Reward per Worker</div>
+            <div className="stat-value" style={{ fontSize: '1.5rem' }}>₦{task.reward?.amount_per_worker?.toLocaleString()}</div>
           </div>
-          <div className="col-md-4">
-            <h3 className="card-title">Task Info</h3>
-            <div className="mb-3">
-              <strong>Status:</strong>
-              <span className={`badge ${
-                task.status === 'active' ? 'badge-success' : 
-                task.status === 'paused' ? 'badge-warning' : 
-                'badge-primary'
-              } ms-2`}>
-                {task.status}
-              </span>
-            </div>
-            <div className="mb-3">
-              <strong>Reward:</strong> ₦{task.reward.toLocaleString()}
-            </div>
-            <div className="mb-3">
-              <strong>Submissions:</strong> {task.submissions}
-            </div>
-            <div className="mb-3">
-              <strong>Created:</strong> {new Date(task.createdAt).toLocaleDateString()}
-            </div>
+          <div className="stat-card">
+            <div className="stat-label">Total Slots</div>
+            <div className="stat-value" style={{ fontSize: '1.5rem' }}>{task.slots?.max}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Submissions</div>
+            <div className="stat-value" style={{ fontSize: '1.5rem' }}>{task.total_submissions || 0}</div>
           </div>
         </div>
+
+        <div style={{ marginBottom: '1.5rem' }}>
+          <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', fontWeight: '600' }}>Description</h3>
+          <div dangerouslySetInnerHTML={{ __html: task.description }} style={{ lineHeight: '1.6' }} />
+        </div>
+
+        <div style={{ marginBottom: '1.5rem' }}>
+          <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', fontWeight: '600' }}>Instructions</h3>
+          <div dangerouslySetInnerHTML={{ __html: task.instructions }} style={{ lineHeight: '1.6' }} />
+        </div>
+
+        {task.task_site && (
+          <div style={{ marginBottom: '1.5rem' }}>
+            <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', fontWeight: '600' }}>Task Site</h3>
+            <a href={task.task_site} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--dh-primary)', wordBreak: 'break-all' }}>
+              {task.task_site}
+            </a>
+          </div>
+        )}
+
+        {task.attachment && task.attachment.length > 0 && (
+          <div style={{ marginBottom: '1.5rem' }}>
+            <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', fontWeight: '600' }}>Attachments</h3>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+              {task.attachment.map((url, index) => (
+                <img key={index} src={url} alt={`Attachment ${index + 1}`} style={{ maxWidth: '100%', width: '200px', borderRadius: '8px' }} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {task.review_type === 'Closed' && task.closed_review_options && (
+          <div>
+            <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', fontWeight: '600' }}>Review Options ({task.closed_review_options.length})</h3>
+            <ul style={{ paddingLeft: '1.5rem', lineHeight: '1.6' }}>
+              {task.closed_review_options.slice(0, 3).map((option, index) => (
+                <li key={index} style={{ marginBottom: '0.5rem' }}>{option}</li>
+              ))}
+              {task.closed_review_options.length > 3 && (
+                <li style={{ color: 'var(--dh-muted)' }}>...and {task.closed_review_options.length - 3} more options</li>
+              )}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );

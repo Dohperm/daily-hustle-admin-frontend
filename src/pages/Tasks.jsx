@@ -1,23 +1,86 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ConfirmModal from "../components/ConfirmModal";
+import Spinner from "../components/Spinner";
+import { api } from "../services/api";
 
 export default function Tasks() {
   const navigate = useNavigate();
-  const [tasks, setTasks] = useState([
-    { id: 1, title: 'Social Media Post', advertiser: 'John Marketing Co.', description: 'Create Instagram post about product', status: 'active', reward: 500, submissions: 12, createdAt: '2024-01-15' },
-    { id: 2, title: 'Survey Completion', advertiser: 'Sarah Digital Agency', description: 'Complete customer satisfaction survey', status: 'active', reward: 200, submissions: 8, createdAt: '2024-01-20' },
-    { id: 3, title: 'Product Review', advertiser: 'Mike Brand Solutions', description: 'Write detailed product review', status: 'paused', reward: 300, submissions: 5, createdAt: '2024-02-01' },
-    { id: 4, title: 'Video Upload', advertiser: 'Lisa Creative Studio', description: 'Upload unboxing video to TikTok', status: 'active', reward: 800, submissions: 15, createdAt: '2024-02-10' },
-    { id: 5, title: 'App Review', advertiser: 'Tech Innovations Ltd', description: 'Review mobile app on Play Store', status: 'completed', reward: 150, submissions: 25, createdAt: '2024-02-15' },
-    { id: 6, title: 'Website Testing', advertiser: 'Global Brands Inc', description: 'Test website functionality', status: 'active', reward: 400, submissions: 7, createdAt: '2024-02-20' }
-  ]);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
   const [showDropdown, setShowDropdown] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(null);
   const itemsPerPage = 10;
+
+  useEffect(() => {
+    fetchTasks();
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showDropdown && !e.target.closest('td')) {
+        setShowDropdown(null);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showDropdown]);
+
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const params = {};
+      if (searchTerm) {
+        params.search = searchTerm;
+      }
+      const response = await api.get('/tasks/admins', { params });
+      
+      // Handle nested data structure
+      let tasksArray = [];
+      if (response.data.data && Array.isArray(response.data.data.data)) {
+        tasksArray = response.data.data.data;
+      } else if (Array.isArray(response.data.data)) {
+        tasksArray = response.data.data;
+      } else if (Array.isArray(response.data)) {
+        tasksArray = response.data;
+      }
+      
+      setTasks(tasksArray);
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+      setError(error.message || 'Failed to fetch tasks');
+      setTasks([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const params = {
+        download: true,
+        columns: ['title', 'advertiser', 'description', 'status', 'reward', 'submissions', 'createdAt']
+      };
+      if (searchTerm) {
+        params.search = searchTerm;
+      }
+      const response = await api.get('/tasks/admins', { params, responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'tasks.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Error exporting tasks:', error);
+    }
+  };
 
   const handleTaskAction = (taskId, action) => {
     if (action === 'view') {
@@ -30,7 +93,7 @@ export default function Tasks() {
     setShowDropdown(null);
   };
 
-  const filteredTasks = tasks.filter(task => {
+  const filteredTasks = (tasks || []).filter(task => {
     const matchesSearch = task.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          task.advertiser?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filter === "all" || task.status === filter;
@@ -46,7 +109,9 @@ export default function Tasks() {
   };
 
   return (
-    <div className="fade-in">
+    <>
+      {loading && <Spinner size="lg" fullScreen />}
+      <div className="fade-in">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 className="card-title">Tasks Management</h1>
         <span className="badge badge-primary">{filteredTasks.length}</span>
@@ -75,20 +140,21 @@ export default function Tasks() {
             <option value="completed">Completed</option>
           </select>
         </div>
-        <button className="btn btn-outline" onClick={() => console.log('Export tasks')}>
+        <button className="btn btn-outline" onClick={handleExport}>
           <i className="fas fa-download"></i> Export
         </button>
       </div>
 
       {/* Table */}
       <div className="card">
-        <div className="table-responsive">
+        <div className="table-responsive" style={{ overflowX: 'auto' }}>
           <table className="table">
             <thead>
               <tr>
                 <th>Title</th>
                 <th>Advertiser</th>
-                <th>Description</th>
+                <th>Category</th>
+                <th>Sub Category</th>
                 <th>Status</th>
                 <th>Reward</th>
                 <th>Submissions</th>
@@ -97,13 +163,16 @@ export default function Tasks() {
               </tr>
             </thead>
             <tbody>
-              {currentTasks.map((task) => (
-                <tr key={task.id}>
-                  <td>{task.title}</td>
-                  <td>{task.advertiser}</td>
-                  <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {task.description}
-                  </td>
+              {currentTasks.length === 0 && !loading ? (
+                <tr>
+                  <td colSpan="9" className="text-center">No tasks found</td>
+                </tr>
+              ) : currentTasks.map((task) => (
+                <tr key={task._id} style={{ fontSize: '0.8rem' }}>
+                  <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.title}</td>
+                  <td style={{ minWidth: '120px' }}>{task.advertiser?.first_name} {task.advertiser?.last_name}</td>
+                  <td style={{ minWidth: '100px' }}>{task.category || 'N/A'}</td>
+                  <td style={{ minWidth: '120px' }}>{task.sub_category || 'N/A'}</td>
                   <td>
                     <span className={`badge ${
                       task.status === 'active' ? 'badge-success' : 
@@ -117,52 +186,62 @@ export default function Tasks() {
                       }`}></i> {task.status}
                     </span>
                   </td>
-                  <td>₦{task.reward.toLocaleString()}</td>
+                  <td>₦{task.reward?.amount_per_worker?.toLocaleString() || 0}</td>
                   <td>{task.submissions}</td>
                   <td>{new Date(task.createdAt).toLocaleDateString()}</td>
                   <td style={{ position: 'relative' }}>
                     <button
-                      className="btn btn-sm"
-                      onClick={() => setShowDropdown(showDropdown === task.id ? null : task.id)}
-                      style={{ background: 'none', border: 'none', color: 'var(--dh-text)' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowDropdown(showDropdown === task._id ? null : task._id);
+                      }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}
                     >
-                      <i className="fas fa-ellipsis-v"></i>
+                      <i className="fas fa-ellipsis-v" style={{ color: 'var(--dh-text)' }}></i>
                     </button>
-                    {showDropdown === task.id && (
+                    {showDropdown === task._id ? (
                       <div style={{
                         position: 'absolute',
                         top: '100%',
-                        right: 0,
-                        background: 'var(--dh-card-bg)',
-                        border: '1px solid var(--dh-border)',
+                        right: '10px',
+                        background: 'white',
+                        border: '1px solid #e5e7eb',
                         borderRadius: '8px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                         zIndex: 1000,
-                        minWidth: '150px'
+                        minWidth: '180px',
+                        marginTop: '4px',
+                        overflow: 'hidden'
                       }}>
-                        <button
-                          className="btn btn-sm"
-                          onClick={() => handleTaskAction(task.id, 'view')}
-                          style={{ width: '100%', textAlign: 'left', border: 'none', background: 'none', padding: '8px 12px' }}
+                        <div
+                          onClick={() => handleTaskAction(task._id, 'view')}
+                          style={{ padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '1px solid #f3f4f6' }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
                         >
-                          <i className="fas fa-eye"></i> View Task
-                        </button>
-                        <button
-                          className="btn btn-sm"
-                          onClick={() => handleTaskAction(task.id, 'submissions')}
-                          style={{ width: '100%', textAlign: 'left', border: 'none', background: 'none', padding: '8px 12px' }}
+                          <i className="fas fa-eye" style={{ width: '16px' }}></i>
+                          <span>View Task</span>
+                        </div>
+                        <div
+                          onClick={() => handleTaskAction(task._id, 'submissions')}
+                          style={{ padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '1px solid #f3f4f6' }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
                         >
-                          <i className="fas fa-list"></i> Submissions
-                        </button>
-                        <button
-                          className="btn btn-sm text-danger"
-                          onClick={() => handleTaskAction(task.id, 'delete')}
-                          style={{ width: '100%', textAlign: 'left', border: 'none', background: 'none', padding: '8px 12px' }}
+                          <i className="fas fa-list" style={{ width: '16px' }}></i>
+                          <span>View Submissions</span>
+                        </div>
+                        <div
+                          onClick={() => handleTaskAction(task._id, 'delete')}
+                          style={{ padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', color: '#ef4444' }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = '#fef2f2'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
                         >
-                          <i className="fas fa-trash"></i> Delete
-                        </button>
+                          <i className="fas fa-trash" style={{ width: '16px' }}></i>
+                          <span>Delete</span>
+                        </div>
                       </div>
-                    )}
+                    ) : null}
                   </td>
                 </tr>
               ))}
@@ -236,5 +315,6 @@ export default function Tasks() {
         message="Are you sure you want to delete this task? This action cannot be undone."
       />
     </div>
+    </>
   );
 }
