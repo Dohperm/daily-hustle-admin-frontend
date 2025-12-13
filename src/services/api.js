@@ -37,7 +37,7 @@ export const tasksAPI = {
   reject: (id, reason) => api.put(`/tasks/${id}/reject`, { reason }),
   delete: (id) => api.delete(`/tasks/${id}`),
   approveSubmission: (taskProofId) => api.post('/tasks/submissions/admins', { admin_approval_status: 'approved', task_proof_id: taskProofId }),
-  rejectSubmission: (taskProofId) => api.post('/tasks/submissions/admins', { admin_approval_status: 'rejected', task_proof_id: taskProofId }),
+  rejectSubmission: (taskProofId, rejectionReason) => api.post('/tasks/submissions/admins', { approval_status: 'resubmit', task_proof_id: taskProofId, rejection_reason: rejectionReason }),
 }
 
 // Dashboard API

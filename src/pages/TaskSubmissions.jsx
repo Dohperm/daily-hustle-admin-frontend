@@ -69,7 +69,7 @@ export default function TaskSubmissions() {
 
   const handleReject = async (reason) => {
     try {
-      const response = await tasksAPI.rejectSubmission(showRejectModal);
+      const response = await tasksAPI.rejectSubmission(showRejectModal, reason);
       setSubmissions(prev => prev.map(s => 
         s.task_proof_id === showRejectModal ? { ...s, admin_approval_status: 'rejected' } : s
       ));
