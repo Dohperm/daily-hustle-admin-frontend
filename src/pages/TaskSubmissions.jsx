@@ -42,7 +42,7 @@ export default function TaskSubmissions() {
       try {
         const response = await tasksAPI.approveSubmission(submissionId);
         setSubmissions(prev => prev.map(s => 
-          s.task_proof_id === submissionId ? { ...s, approval_status: 'approved' } : s
+          s.task_proof_id === submissionId ? { ...s, admin_approval_status: 'approved' } : s
         ));
         toast.success(response.data.message || 'Submission approved successfully');
       } catch (error) {
@@ -56,7 +56,7 @@ export default function TaskSubmissions() {
 
   const filteredSubmissions = submissions.filter(submission => {
     if (filter === "all") return true;
-    return submission.approval_status === filter;
+    return submission.admin_approval_status === filter;
   });
 
   const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
@@ -71,7 +71,7 @@ export default function TaskSubmissions() {
     try {
       const response = await tasksAPI.rejectSubmission(showRejectModal);
       setSubmissions(prev => prev.map(s => 
-        s.task_proof_id === showRejectModal ? { ...s, approval_status: 'rejected' } : s
+        s.task_proof_id === showRejectModal ? { ...s, admin_approval_status: 'rejected' } : s
       ));
       toast.success(response.data.message || 'Submission rejected successfully');
     } catch (error) {
@@ -121,7 +121,9 @@ export default function TaskSubmissions() {
               <tr>
                 <th>User</th>
                 <th>Submitted</th>
-                <th>Status</th>
+                <th>Admin Status</th>
+                <th>Employer Status</th>
+                <th>Employer Approval Date</th>
                 <th>Proof</th>
                 <th>Actions</th>
               </tr>
@@ -129,13 +131,13 @@ export default function TaskSubmissions() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="5" className="text-center" style={{ padding: '2rem' }}>
+                  <td colSpan="7" className="text-center" style={{ padding: '2rem' }}>
                     <Spinner size="md" />
                   </td>
                 </tr>
               ) : currentSubmissions.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="text-center">No submissions found</td>
+                  <td colSpan="7" className="text-center">No submissions found</td>
                 </tr>
               ) : currentSubmissions.map((submission) => (
                 <tr key={submission._id}>
@@ -143,17 +145,23 @@ export default function TaskSubmissions() {
                   <td>{new Date(submission.date).toLocaleString()}</td>
                   <td>
                     <span className={`badge ${
-                      submission.approval_status === 'approved' ? 'badge-success' : 
-                      submission.approval_status === 'rejected' ? 'badge-danger' : 
+                      submission.admin_approval_status === 'approved' ? 'badge-success' : 
+                      submission.admin_approval_status === 'rejected' ? 'badge-danger' : 
                       'badge-warning'
                     }`}>
-                      <i className={`fas ${
-                        submission.approval_status === 'approved' ? 'fa-check' : 
-                        submission.approval_status === 'rejected' ? 'fa-times' : 
-                        'fa-clock'
-                      }`}></i> {submission.approval_status}
+                      {submission.admin_approval_status || 'N/A'}
                     </span>
                   </td>
+                  <td>
+                    <span className={`badge ${
+                      submission.advertiser_approval_status === 'approved' ? 'badge-success' : 
+                      submission.advertiser_approval_status === 'rejected' ? 'badge-danger' : 
+                      'badge-warning'
+                    }`}>
+                      {submission.advertiser_approval_status || 'N/A'}
+                    </span>
+                  </td>
+                  <td>{submission.advertiser_approval_date ? new Date(submission.advertiser_approval_date).toLocaleString() : 'N/A'}</td>
                   <td>
                     {submission.src && (
                       <img 
@@ -168,7 +176,7 @@ export default function TaskSubmissions() {
                     )}
                   </td>
                   <td>
-                    {submission.approval_status === 'pending' && (
+                    {submission.admin_approval_status === 'pending' && (
                       <div className="d-flex gap-2">
                         <button
                           className="btn btn-sm btn-success"

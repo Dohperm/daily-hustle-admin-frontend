@@ -174,7 +174,7 @@ export default function Advertisers() {
                     {showDropdown === advertiser._id && (
                       <div style={{
                         position: 'absolute',
-                        top: '100%',
+                        bottom: '100%',
                         right: '10px',
                         background: 'var(--dh-card-bg)',
                         border: '1px solid var(--dh-border)',
@@ -182,7 +182,7 @@ export default function Advertisers() {
                         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                         zIndex: 1000,
                         minWidth: '150px',
-                        marginTop: '4px',
+                        marginBottom: '4px',
                         overflow: 'hidden'
                       }}>
                         <div
