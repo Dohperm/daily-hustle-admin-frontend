@@ -102,9 +102,7 @@ export default function Tasks() {
   };
 
   return (
-    <>
-      {loading && <Spinner size="lg" fullScreen />}
-      <div className="fade-in">
+    <div className="fade-in">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1 className="card-title">Tasks Management</h1>
         <span className="badge badge-primary">{filteredTasks.length}</span>
@@ -156,7 +154,13 @@ export default function Tasks() {
               </tr>
             </thead>
             <tbody>
-              {currentTasks.length === 0 && !loading ? (
+              {loading ? (
+                <tr>
+                  <td colSpan="9" className="text-center py-5">
+                    <Spinner />
+                  </td>
+                </tr>
+              ) : currentTasks.length === 0 ? (
                 <tr>
                   <td colSpan="9" className="text-center">No tasks found</td>
                 </tr>
@@ -313,6 +317,5 @@ export default function Tasks() {
         message="Are you sure you want to delete this task? This action cannot be undone."
       />
     </div>
-    </>
   );
 }
