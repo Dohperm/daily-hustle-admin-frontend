@@ -25,6 +25,7 @@
   --dh-text: #1f2937;
   --dh-text-light: #ffffff;
   --dh-border: #e5e7eb;
+  --dh-hover: #f9fafb;
   --primary-color: #ff5722;
 
   --transition-fast: all 0.3s ease-in-out;
@@ -37,6 +38,7 @@ body.dark {
   --dh-card-bg: #2d2d2d;
   --dh-text: #ffffff;
   --dh-border: #404040;
+  --dh-hover: #404040;
 }
 
 /* ============================================================================ 

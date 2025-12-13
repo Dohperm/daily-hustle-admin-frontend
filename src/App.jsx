@@ -5,10 +5,11 @@ import Login from "./pages/Login";
 import Toast from "./components/Toast";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
+import UserDetail from "./pages/UserDetail";
 import Tasks from "./pages/Tasks";
-
 import Transactions from "./pages/Transactions";
 import Advertisers from "./pages/Advertisers";
+import AdvertiserDetail from "./pages/AdvertiserDetail";
 import Withdrawals from "./pages/Withdrawals";
 import TaskDetail from "./pages/TaskDetail";
 import TaskSubmissions from "./pages/TaskSubmissions";
@@ -51,10 +52,11 @@ export default function App() {
       }>
         <Route index element={<Dashboard />} />
         <Route path="users" element={<Users />} />
+        <Route path="users/:id" element={<UserDetail />} />
         <Route path="tasks" element={<Tasks />} />
-
         <Route path="transactions" element={<Transactions />} />
         <Route path="advertisers" element={<Advertisers />} />
+        <Route path="advertisers/:id" element={<AdvertiserDetail />} />
         <Route path="withdrawals" element={<Withdrawals />} />
         <Route path="tasks/:id" element={<TaskDetail />} />
         <Route path="tasks/:id/submissions" element={<TaskSubmissions />} />

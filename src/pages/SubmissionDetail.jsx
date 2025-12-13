@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import InputModal from "../components/InputModal";
+import { tasksAPI } from "../services/api";
+import { toast } from "../components/Toast";
 
 export default function SubmissionDetail() {
   const { id } = useParams();
@@ -18,17 +20,31 @@ export default function SubmissionDetail() {
   });
   const [showRejectModal, setShowRejectModal] = useState(false);
 
-  const handleAction = (action) => {
+  const handleAction = async (action) => {
     if (action === 'approve') {
-      setSubmission(prev => ({ ...prev, status: 'approved' }));
+      try {
+        await tasksAPI.approveSubmission(id);
+        setSubmission(prev => ({ ...prev, status: 'approved' }));
+        toast.success('Submission approved successfully');
+      } catch (error) {
+        console.error('Error approving submission:', error);
+        toast.error('Failed to approve submission');
+      }
     } else if (action === 'reject') {
       setShowRejectModal(true);
     }
   };
 
-  const handleReject = (reason) => {
-    setSubmission(prev => ({ ...prev, status: 'rejected' }));
-    setShowRejectModal(false);
+  const handleReject = async (reason) => {
+    try {
+      await tasksAPI.rejectSubmission(id);
+      setSubmission(prev => ({ ...prev, status: 'rejected' }));
+      setShowRejectModal(false);
+      toast.success('Submission rejected successfully');
+    } catch (error) {
+      console.error('Error rejecting submission:', error);
+      toast.error('Failed to reject submission');
+    }
   };
 
   return (

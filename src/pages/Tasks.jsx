@@ -207,8 +207,8 @@ export default function Tasks() {
                         position: 'absolute',
                         top: '100%',
                         right: '10px',
-                        background: 'white',
-                        border: '1px solid #e5e7eb',
+                        background: 'var(--dh-card-bg)',
+                        border: '1px solid var(--dh-border)',
                         borderRadius: '8px',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                         zIndex: 1000,
@@ -218,18 +218,18 @@ export default function Tasks() {
                       }}>
                         <div
                           onClick={() => handleTaskAction(task._id, 'view')}
-                          style={{ padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '1px solid #f3f4f6' }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
-                          onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                          style={{ padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '1px solid var(--dh-border)' }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = 'var(--dh-hover)'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                         >
                           <i className="fas fa-eye" style={{ width: '16px' }}></i>
                           <span>View Task</span>
                         </div>
                         <div
                           onClick={() => handleTaskAction(task._id, 'submissions')}
-                          style={{ padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '1px solid #f3f4f6' }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
-                          onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                          style={{ padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '1px solid var(--dh-border)' }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = 'var(--dh-hover)'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                         >
                           <i className="fas fa-list" style={{ width: '16px' }}></i>
                           <span>View Submissions</span>
@@ -237,8 +237,8 @@ export default function Tasks() {
                         <div
                           onClick={() => handleTaskAction(task._id, 'delete')}
                           style={{ padding: '12px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', color: '#ef4444' }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = '#fef2f2'}
-                          onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                          onMouseEnter={(e) => e.currentTarget.style.background = 'var(--dh-hover)'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                         >
                           <i className="fas fa-trash" style={{ width: '16px' }}></i>
                           <span>Delete</span>

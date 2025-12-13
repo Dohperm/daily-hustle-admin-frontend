@@ -21,8 +21,10 @@ api.interceptors.request.use((config) => {
 // Users API
 export const usersAPI = {
   getAll: () => api.get('/users'),
-  getById: (id) => api.get(`/users/${id}`),
-  update: (id, data) => api.put(`/users/${id}`, data),
+  getAdmins: (params) => api.get('/users/admins', { params }),
+  getById: (id) => api.get(`/users/${id}/admins`),
+  getUserStats: () => api.get('/users/stats/admins'),
+  update: (id, data) => api.patch(`/users/${id}/admins`, data),
   delete: (id) => api.delete(`/users/${id}`),
 }
 
@@ -34,6 +36,8 @@ export const tasksAPI = {
   approve: (id) => api.put(`/tasks/${id}/approve`),
   reject: (id, reason) => api.put(`/tasks/${id}/reject`, { reason }),
   delete: (id) => api.delete(`/tasks/${id}`),
+  approveSubmission: (taskProofId) => api.post('/tasks/submissions/admins', { admin_approval_status: 'approved', task_proof_id: taskProofId }),
+  rejectSubmission: (taskProofId) => api.post('/tasks/submissions/admins', { admin_approval_status: 'rejected', task_proof_id: taskProofId }),
 }
 
 // Dashboard API
@@ -46,6 +50,14 @@ export const dashboardAPI = {
 export const authAPI = {
   login: (identifier, password) => api.post('/auths/admins/login', { identifier, password }),
   validateLogin: (identifier, password, token) => api.post('/auths/admins/validate-login', { identifier, password, token }),
+}
+
+// Advertisers API
+export const advertisersAPI = {
+  getAll: (params) => api.get('/advertisers/admins', { params }),
+  getById: (id) => api.get(`/advertisers/${id}/admins`),
+  getStats: () => api.get('/advertisers/stats/admins'),
+  update: (id, data) => api.patch(`/advertisers/${id}/admins`, data),
 }
 
 export { api, API_BASE_URL }

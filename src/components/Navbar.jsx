@@ -42,7 +42,7 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
         
         <NavLink to="/users" className="nav-link">
           <i className="fas fa-users"></i>
-          <span>Worker Management</span>
+          <span>Workers Management</span>
         </NavLink>
         
         <NavLink to="/advertisers" className="nav-link">

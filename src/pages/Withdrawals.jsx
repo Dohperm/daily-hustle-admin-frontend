@@ -1,17 +1,10 @@
 import { useState, useEffect } from "react";
 import InputModal from "../components/InputModal";
+import Spinner from "../components/Spinner";
 
 export default function Withdrawals() {
-  const [withdrawals, setWithdrawals] = useState([
-    { id: 'WD-001', user: 'John Doe', amount: 5000, bankName: 'GTBank', accountNumber: '0123456789', status: 'pending', requestDate: '2024-02-15', processedDate: null },
-    { id: 'WD-002', user: 'Jane Smith', amount: 3500, bankName: 'Access Bank', accountNumber: '0987654321', status: 'approved', requestDate: '2024-02-14', processedDate: '2024-02-15' },
-    { id: 'WD-003', user: 'Mike Johnson', amount: 2000, bankName: 'First Bank', accountNumber: '1122334455', status: 'rejected', requestDate: '2024-02-13', processedDate: '2024-02-14' },
-    { id: 'WD-004', user: 'Sarah Wilson', amount: 7500, bankName: 'UBA', accountNumber: '5566778899', status: 'pending', requestDate: '2024-02-12', processedDate: null },
-    { id: 'WD-005', user: 'David Brown', amount: 4200, bankName: 'Zenith Bank', accountNumber: '2233445566', status: 'approved', requestDate: '2024-02-11', processedDate: '2024-02-12' },
-    { id: 'WD-006', user: 'Lisa Davis', amount: 6800, bankName: 'Sterling Bank', accountNumber: '7788990011', status: 'pending', requestDate: '2024-02-10', processedDate: null },
-    { id: 'WD-007', user: 'Tom Wilson', amount: 1500, bankName: 'Wema Bank', accountNumber: '3344556677', status: 'rejected', requestDate: '2024-02-09', processedDate: '2024-02-10' },
-    { id: 'WD-008', user: 'Anna Taylor', amount: 9200, bankName: 'Fidelity Bank', accountNumber: '8899001122', status: 'approved', requestDate: '2024-02-08', processedDate: '2024-02-09' }
-  ]);
+  const [withdrawals, setWithdrawals] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
@@ -153,7 +146,13 @@ export default function Withdrawals() {
               </tr>
             </thead>
             <tbody>
-              {currentWithdrawals.map((withdrawal) => (
+              {loading ? (
+                <tr>
+                  <td colSpan="7" className="text-center py-5">
+                    <Spinner />
+                  </td>
+                </tr>
+              ) : currentWithdrawals.map((withdrawal) => (
                 <tr key={withdrawal.id}>
                   <td>{withdrawal.user}</td>
                   <td>₦{withdrawal.amount.toLocaleString()}</td>

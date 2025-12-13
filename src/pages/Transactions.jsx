@@ -1,18 +1,9 @@
 import { useState, useEffect } from "react";
+import Spinner from "../components/Spinner";
 
 export default function Transactions() {
-  const [transactions, setTransactions] = useState([
-    { id: 'SPY-UjmqUZNAKCTbzaZDGqyUkSGrq', user: 'Awwal Olanryl', service: 'Airtime', type: 'Debit', amount: 1000.00, status: 'Completed', date: 'Nov 20, 2025' },
-    { id: 'SPY-UjmqDEsRyGyCDOVWEZUAhOA3T4Gy', user: 'Awwal Olanryl', service: 'Airtime', type: 'Debit', amount: 100.00, status: 'Completed', date: 'Nov 20, 2025' },
-    { id: 'SPY-eQjczLNzHCznyVHLkNRdUCpokkeU', user: 'Awwal Olanryl', service: 'Airtime', type: 'Debit', amount: 100.00, status: 'Completed', date: 'Nov 20, 2025' },
-    { id: 'SPY-OqEFRdNzrxBmtZmYmqEjSECTGckJCk', user: 'Awwal Olanryl', service: 'Airtime', type: 'Debit', amount: 100.00, status: 'Completed', date: 'Nov 20, 2025' },
-    { id: 'SPY-ZqZHgcqKcRPDCGGgqWyWMEK3ZBRCn', user: 'Awwal Olanryl', service: 'Airtime', type: 'Debit', amount: 120.00, status: 'Completed', date: 'Nov 20, 2025' },
-    { id: 'SPY-ScVsLGKMumpBRGnCDxcRBzRBNS', user: 'Awwal Olanryl', service: 'Airtime', type: 'Debit', amount: 200.00, status: 'Completed', date: 'Nov 20, 2025' },
-    { id: 'SPY-OsrwNJETHmRjGcnUZHmCXMST', user: 'Awwal Olanryl', service: 'Airtime', type: 'Debit', amount: 100.00, status: 'Completed', date: 'Nov 20, 2025' },
-    { id: 'SPY-ZDerGnQkSRXGhTb7SuRgRhcqNty', user: 'Awwal Olanryl', service: 'Airtime', type: 'Debit', amount: 100.00, status: 'Completed', date: 'Nov 20, 2025' },
-    { id: 'SPY-CsxtHmqzxSdxVsxrKTHmvqZPPrMh', user: 'Awwal Olanryl', service: 'Airtime', type: 'Debit', amount: 100.00, status: 'Completed', date: 'Nov 20, 2025' },
-    { id: 'SPY-xSFqNTANWBLPnJcuRyJKWemCRPGLd', user: 'Awwal Olanryl', service: 'Airtime', type: 'Debit', amount: 100.00, status: 'Completed', date: 'Nov 20, 2025' }
-  ]);
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
@@ -86,7 +77,13 @@ export default function Transactions() {
               </tr>
             </thead>
             <tbody>
-              {currentTransactions.map((transaction) => (
+              {loading ? (
+                <tr>
+                  <td colSpan="7" className="text-center py-5">
+                    <Spinner />
+                  </td>
+                </tr>
+              ) : currentTransactions.map((transaction) => (
                 <tr key={transaction.id}>
                   <td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
                     {transaction.id}

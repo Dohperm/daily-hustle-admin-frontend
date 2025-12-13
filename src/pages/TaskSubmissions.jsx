@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import InputModal from "../components/InputModal";
 import Spinner from "../components/Spinner";
-import { api } from "../services/api";
+import { api, tasksAPI } from "../services/api";
+import { toast } from "../components/Toast";
 
 export default function TaskSubmissions() {
   const { id } = useParams();
@@ -33,13 +34,21 @@ export default function TaskSubmissions() {
     }
   };
 
-  const handleSubmissionAction = (submissionId, action) => {
+  const handleSubmissionAction = async (submissionId, action) => {
+    console.log('Submission ID:', submissionId);
     if (action === 'view') {
       navigate(`/submissions/${submissionId}`);
     } else if (action === 'approve') {
-      setSubmissions(prev => prev.map(s => 
-        s.id === submissionId ? { ...s, status: 'approved' } : s
-      ));
+      try {
+        const response = await tasksAPI.approveSubmission(submissionId);
+        setSubmissions(prev => prev.map(s => 
+          s.task_proof_id === submissionId ? { ...s, approval_status: 'approved' } : s
+        ));
+        toast.success(response.data.message || 'Submission approved successfully');
+      } catch (error) {
+        console.error('Error approving submission:', error);
+        toast.error(error.response?.data?.message || 'Failed to approve submission');
+      }
     } else if (action === 'reject') {
       setShowRejectModal(submissionId);
     }
@@ -60,10 +69,14 @@ export default function TaskSubmissions() {
 
   const handleReject = async (reason) => {
     try {
-      // TODO: Call API to reject submission with reason
-      await fetchSubmissions();
+      const response = await tasksAPI.rejectSubmission(showRejectModal);
+      setSubmissions(prev => prev.map(s => 
+        s.task_proof_id === showRejectModal ? { ...s, approval_status: 'rejected' } : s
+      ));
+      toast.success(response.data.message || 'Submission rejected successfully');
     } catch (error) {
       console.error('Error rejecting submission:', error);
+      toast.error(error.response?.data?.message || 'Failed to reject submission');
     }
     setShowRejectModal(null);
   };
@@ -159,13 +172,13 @@ export default function TaskSubmissions() {
                       <div className="d-flex gap-2">
                         <button
                           className="btn btn-sm btn-success"
-                          onClick={() => handleSubmissionAction(submission._id, 'approve')}
+                          onClick={() => handleSubmissionAction(submission.task_proof_id, 'approve')}
                         >
                           Approve
                         </button>
                         <button
                           className="btn btn-sm btn-danger"
-                          onClick={() => handleSubmissionAction(submission._id, 'reject')}
+                          onClick={() => handleSubmissionAction(submission.task_proof_id, 'reject')}
                         >
                           Reject
                         </button>
