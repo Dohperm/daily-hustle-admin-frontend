@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import ConfirmModal from "../components/ConfirmModal";
 import Spinner from "../components/Spinner";
 import { api } from "../services/api";
+import { exportToCSV } from "../utils/exportUtils";
+import { toast } from "../components/Toast";
 
 export default function Tasks() {
   const navigate = useNavigate();
@@ -61,24 +63,12 @@ export default function Tasks() {
   };
 
   const handleExport = async () => {
-    try {
-      const params = {
-        download: true,
-        columns: ['title', 'advertiser', 'description', 'status', 'reward', 'submissions', 'createdAt']
-      };
-      if (searchTerm) {
-        params.search = searchTerm;
-      }
-      const response = await api.get('/tasks/admins', { params, responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'tasks.csv');
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (error) {
-      console.error('Error exporting tasks:', error);
+    const columns = ['title', 'advertiser', 'category', 'sub_category', 'status', 'reward', 'submissions', 'createdAt'];
+    const result = await exportToCSV('/tasks/admins', columns, 'tasks.csv', { search: searchTerm });
+    if (result.success) {
+      toast.success('Tasks exported successfully');
+    } else {
+      toast.error('Failed to export tasks');
     }
   };
 
@@ -170,7 +160,7 @@ export default function Tasks() {
                 <tr>
                   <td colSpan="9" className="text-center">No tasks found</td>
                 </tr>
-              ) : currentTasks.map((task) => (
+              ) : currentTasks.map((task, index) => (
                 <tr key={task._id} style={{ fontSize: '0.8rem' }}>
                   <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.title}</td>
                   <td style={{ minWidth: '120px' }}>{task.advertiser?.first_name} {task.advertiser?.last_name}</td>
@@ -205,7 +195,7 @@ export default function Tasks() {
                     {showDropdown === task._id ? (
                       <div style={{
                         position: 'absolute',
-                        bottom: '100%',
+                        ...(index >= currentTasks.length - 2 ? { bottom: '100%', marginBottom: '4px' } : { top: '100%', marginTop: '4px' }),
                         right: '10px',
                         background: 'var(--dh-card-bg)',
                         border: '1px solid var(--dh-border)',
@@ -213,7 +203,6 @@ export default function Tasks() {
                         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                         zIndex: 1000,
                         minWidth: '180px',
-                        marginBottom: '4px',
                         overflow: 'hidden'
                       }}>
                         <div
