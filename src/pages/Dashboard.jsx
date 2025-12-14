@@ -7,10 +7,11 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [userStats, setUserStats] = useState(null);
   const [advertiserStats, setAdvertiserStats] = useState(null);
-  const [topUsers, setTopUsers] = useState([]);
-  const [topAdvertisers, setTopAdvertisers] = useState([]);
+  const [topEarners, setTopEarners] = useState([]);
+  const [topSpenders, setTopSpenders] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [submissions, setSubmissions] = useState([]);
+  const [categoryAnalytics, setCategoryAnalytics] = useState({});
 
   useEffect(() => {
     fetchStats();
@@ -18,21 +19,23 @@ export default function Dashboard() {
 
   const fetchStats = async () => {
     try {
-      const [userStatsRes, advertiserStatsRes, usersRes, advertisersRes, tasksRes, submissionsRes] = await Promise.all([
+      const [userStatsRes, advertiserStatsRes, topEarnersRes, topSpendersRes, tasksRes, submissionsRes, categoryRes] = await Promise.all([
         usersAPI.getUserStats(),
         advertisersAPI.getStats(),
-        usersAPI.getAdmins({ limit: 10, sort: '-total_earnings' }),
-        advertisersAPI.getAll({ limit: 10, sort: '-total_spent' }),
+        api.get('/users/top-earners/admins'),
+        api.get('/advertisers/top-spenders/admins'),
         api.get('/tasks/admins'),
-        api.get('/tasks/submissions/admins')
+        api.get('/tasks/submissions/admins'),
+        api.get('/tasks/analytics/by-category')
       ]);
 
       setUserStats(userStatsRes.data.data);
       setAdvertiserStats(advertiserStatsRes.data.data);
-      setTopUsers(usersRes.data.data?.data || []);
-      setTopAdvertisers(advertisersRes.data.data?.data || []);
+      setTopEarners(topEarnersRes.data.data || []);
+      setTopSpenders(topSpendersRes.data.data || []);
       setTasks(tasksRes.data.data?.data || []);
       setSubmissions(submissionsRes.data.data?.data || []);
+      setCategoryAnalytics(categoryRes.data.data || {});
     } catch (error) {
       console.error('Error fetching stats:', error);
     } finally {
@@ -78,35 +81,30 @@ export default function Dashboard() {
     color: name === 'approved' ? '#10b981' : name === 'rejected' ? '#ef4444' : name === 'resubmit' ? '#f59e0b' : '#6b7280'
   }));
 
-  const categoryData = tasks.reduce((acc, task) => {
-    const category = task.category || 'Others';
-    acc[category] = (acc[category] || 0) + 1;
-    return acc;
-  }, {});
+  const categoryChartData = Object.entries(categoryAnalytics)
+    .filter(([_, value]) => value > 0)
+    .map(([name, value], index) => ({
+      name: name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      value,
+      color: ['#8b5cf6', '#ec4899', '#f97316', '#06b6d4', '#84cc16', '#f59e0b', '#ef4444', '#10b981'][index % 8]
+    }));
 
-  const categoryChartData = Object.entries(categoryData).map(([name, value], index) => ({
-    name,
-    value,
-    color: ['#8b5cf6', '#ec4899', '#f97316', '#06b6d4', '#84cc16', '#f59e0b'][index % 6]
+  const topEarnersData = topEarners.slice(0, 10).map(user => ({
+    id: user._id,
+    name: user.name,
+    earnings: user.total_earned || 0
   }));
 
-  const topUsersData = topUsers.slice(0, 5).map(user => ({
-    name: `${user.first_name} ${user.last_name}`,
-    earnings: user.total_earnings || 0,
-    tasks: user.approved_tasks_count || 0
-  }));
-
-  const topAdvertisersData = topAdvertisers.slice(0, 5).map(adv => ({
-    name: `${adv.first_name} ${adv.last_name}`,
-    spent: adv.total_spent || 0,
-    tasks: adv.total_tasks || 0
+  const topSpendersData = topSpenders.slice(0, 10).map(adv => ({
+    id: adv._id,
+    name: adv.name,
+    spent: adv.total_spent || 0
   }));
 
   const stats = {
     totalUsers: userStats?.total_users || 0,
     totalAdvertisers: advertiserStats?.total_advertisers || 0,
-    totalTasks: tasks.length,
-    totalEarnings: topUsers.reduce((sum, u) => sum + (u.total_earnings || 0), 0)
+    totalTasks: tasks.length
   };
 
   return (
@@ -200,7 +198,7 @@ export default function Dashboard() {
         <div className="card">
           <h3 className="card-title">Top Earners</h3>
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={topUsersData} margin={{ bottom: 60 }}>
+            <BarChart data={topEarnersData} margin={{ bottom: 60 }} onClick={(data) => { if (data?.activePayload?.[0]?.payload?.id) window.location.href = `/users/${data.activePayload[0].payload.id}`; }}>
               <defs>
                 <linearGradient id="earningsGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#10b981" stopOpacity={0.8} />
@@ -211,7 +209,7 @@ export default function Dashboard() {
               <XAxis dataKey="name" stroke="var(--dh-text)" angle={-45} textAnchor="end" height={80} tick={{ fontSize: 11 }} />
               <YAxis stroke="var(--dh-text)" tick={{ fontSize: 12 }} />
               <Tooltip contentStyle={{ background: 'var(--dh-card-bg)', border: '1px solid var(--dh-border)', borderRadius: '8px' }} formatter={(value) => `₦${value.toLocaleString()}`} />
-              <Bar dataKey="earnings" fill="url(#earningsGradient)" radius={[8, 8, 0, 0]} barSize={40} />
+              <Bar dataKey="earnings" fill="url(#earningsGradient)" radius={[8, 8, 0, 0]} barSize={40} cursor="pointer" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -219,7 +217,7 @@ export default function Dashboard() {
         <div className="card">
           <h3 className="card-title">Top Spending Employers</h3>
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={topAdvertisersData} margin={{ bottom: 60 }}>
+            <BarChart data={topSpendersData} margin={{ bottom: 60 }} onClick={(data) => { if (data?.activePayload?.[0]?.payload?.id) window.location.href = `/advertisers/${data.activePayload[0].payload.id}`; }}>
               <defs>
                 <linearGradient id="spentGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#ff6b35" stopOpacity={0.8} />
@@ -230,7 +228,7 @@ export default function Dashboard() {
               <XAxis dataKey="name" stroke="var(--dh-text)" angle={-45} textAnchor="end" height={80} tick={{ fontSize: 11 }} />
               <YAxis stroke="var(--dh-text)" tick={{ fontSize: 12 }} />
               <Tooltip contentStyle={{ background: 'var(--dh-card-bg)', border: '1px solid var(--dh-border)', borderRadius: '8px' }} formatter={(value) => `₦${value.toLocaleString()}`} />
-              <Bar dataKey="spent" fill="url(#spentGradient)" radius={[8, 8, 0, 0]} barSize={40} />
+              <Bar dataKey="spent" fill="url(#spentGradient)" radius={[8, 8, 0, 0]} barSize={40} cursor="pointer" />
             </BarChart>
           </ResponsiveContainer>
         </div>
