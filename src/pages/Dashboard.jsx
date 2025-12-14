@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { api, usersAPI, advertisersAPI } from "../services/api";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import Spinner from "../components/Spinner";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [userStats, setUserStats] = useState(null);
   const [advertiserStats, setAdvertiserStats] = useState(null);
@@ -198,7 +200,7 @@ export default function Dashboard() {
         <div className="card">
           <h3 className="card-title">Top Earners</h3>
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={topEarnersData} margin={{ bottom: 60 }} onClick={(data) => { if (data?.activePayload?.[0]?.payload?.id) window.location.href = `/users/${data.activePayload[0].payload.id}`; }}>
+            <BarChart data={topEarnersData} margin={{ bottom: 60 }} onClick={(data) => { if (data?.activePayload?.[0]?.payload?.id) navigate(`/users/${data.activePayload[0].payload.id}`); }}>
               <defs>
                 <linearGradient id="earningsGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#10b981" stopOpacity={0.8} />
@@ -209,7 +211,7 @@ export default function Dashboard() {
               <XAxis dataKey="name" stroke="var(--dh-text)" angle={-45} textAnchor="end" height={80} tick={{ fontSize: 11 }} />
               <YAxis stroke="var(--dh-text)" tick={{ fontSize: 12 }} />
               <Tooltip contentStyle={{ background: 'var(--dh-card-bg)', border: '1px solid var(--dh-border)', borderRadius: '8px' }} formatter={(value) => `₦${value.toLocaleString()}`} />
-              <Bar dataKey="earnings" fill="url(#earningsGradient)" radius={[8, 8, 0, 0]} barSize={40} cursor="pointer" />
+              <Bar dataKey="earnings" fill="url(#earningsGradient)" radius={[8, 8, 0, 0]} barSize={40} cursor="pointer" onClick={(data) => navigate(`/users/${data.id}`)} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -217,7 +219,7 @@ export default function Dashboard() {
         <div className="card">
           <h3 className="card-title">Top Spending Employers</h3>
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={topSpendersData} margin={{ bottom: 60 }} onClick={(data) => { if (data?.activePayload?.[0]?.payload?.id) window.location.href = `/advertisers/${data.activePayload[0].payload.id}`; }}>
+            <BarChart data={topSpendersData} margin={{ bottom: 60 }} onClick={(data) => { if (data?.activePayload?.[0]?.payload?.id) navigate(`/advertisers/${data.activePayload[0].payload.id}`); }}>
               <defs>
                 <linearGradient id="spentGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#ff6b35" stopOpacity={0.8} />
@@ -228,7 +230,7 @@ export default function Dashboard() {
               <XAxis dataKey="name" stroke="var(--dh-text)" angle={-45} textAnchor="end" height={80} tick={{ fontSize: 11 }} />
               <YAxis stroke="var(--dh-text)" tick={{ fontSize: 12 }} />
               <Tooltip contentStyle={{ background: 'var(--dh-card-bg)', border: '1px solid var(--dh-border)', borderRadius: '8px' }} formatter={(value) => `₦${value.toLocaleString()}`} />
-              <Bar dataKey="spent" fill="url(#spentGradient)" radius={[8, 8, 0, 0]} barSize={40} cursor="pointer" />
+              <Bar dataKey="spent" fill="url(#spentGradient)" radius={[8, 8, 0, 0]} barSize={40} cursor="pointer" onClick={(data) => navigate(`/advertisers/${data.id}`)} />
             </BarChart>
           </ResponsiveContainer>
         </div>
