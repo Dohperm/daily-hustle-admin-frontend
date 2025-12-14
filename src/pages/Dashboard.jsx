@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { api, usersAPI, advertisersAPI } from "../services/api";
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import Spinner from "../components/Spinner";
 
 export default function Dashboard() {
@@ -104,8 +104,8 @@ export default function Dashboard() {
 
   const stats = {
     totalUsers: userStats?.total_users || 0,
+    totalAdvertisers: advertiserStats?.total_advertisers || 0,
     totalTasks: tasks.length,
-    pendingApprovals: submissions.filter(s => s.admin_approval_status === 'pending').length,
     totalEarnings: topUsers.reduce((sum, u) => sum + (u.total_earnings || 0), 0)
   };
 
@@ -113,11 +113,17 @@ export default function Dashboard() {
     <div className="fade-in">
       <h1 className="card-title mb-4">Dashboard</h1>
       
-      <div className="stats-grid">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
         <div className="stat-card">
           <i className="fas fa-users"></i>
           <div className="stat-value">{stats.totalUsers}</div>
-          <div className="stat-label">Total Users</div>
+          <div className="stat-label">Total Workers</div>
+        </div>
+        
+        <div className="stat-card">
+          <i className="fas fa-briefcase"></i>
+          <div className="stat-value">{stats.totalAdvertisers}</div>
+          <div className="stat-label">Total Employers</div>
         </div>
         
         <div className="stat-card">
@@ -125,78 +131,66 @@ export default function Dashboard() {
           <div className="stat-value">{stats.totalTasks}</div>
           <div className="stat-label">Total Tasks</div>
         </div>
-        
-        <div className="stat-card">
-          <i className="fas fa-clock"></i>
-          <div className="stat-value">{stats.pendingApprovals}</div>
-          <div className="stat-label">Pending Approvals</div>
-        </div>
-        
-        <div className="stat-card">
-          <i className="fas fa-naira-sign"></i>
-          <div className="stat-value">₦{stats.totalEarnings}</div>
-          <div className="stat-label">Total Earnings</div>
-        </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '20px', marginTop: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px', marginTop: '20px' }}>
         <div className="card">
-          <h3 className="card-title">User Status Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
+          <h3 className="card-title">Worker Status Distribution</h3>
+          <ResponsiveContainer width="100%" height={280}>
             <PieChart>
-              <Pie data={userStatusData} cx="50%" cy="50%" labelLine={false} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} outerRadius={100} dataKey="value">
+              <Pie data={userStatusData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={5} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
                 {userStatusData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
               </Pie>
-              <Tooltip contentStyle={{ background: 'var(--dh-card-bg)', border: '1px solid var(--dh-border)' }} />
+              <Tooltip contentStyle={{ background: 'var(--dh-card-bg)', border: '1px solid var(--dh-border)', borderRadius: '8px' }} />
             </PieChart>
           </ResponsiveContainer>
         </div>
 
         <div className="card">
-          <h3 className="card-title">Advertiser Status Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
+          <h3 className="card-title">Employer Status Distribution</h3>
+          <ResponsiveContainer width="100%" height={280}>
             <PieChart>
-              <Pie data={advertiserStatusData} cx="50%" cy="50%" labelLine={false} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} outerRadius={100} dataKey="value">
+              <Pie data={advertiserStatusData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={5} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
                 {advertiserStatusData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
               </Pie>
-              <Tooltip contentStyle={{ background: 'var(--dh-card-bg)', border: '1px solid var(--dh-border)' }} />
+              <Tooltip contentStyle={{ background: 'var(--dh-card-bg)', border: '1px solid var(--dh-border)', borderRadius: '8px' }} />
             </PieChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="card">
+        {/* <div className="card">
           <h3 className="card-title">Tasks by Status</h3>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={280}>
             <PieChart>
-              <Pie data={taskStatusChartData} cx="50%" cy="50%" labelLine={false} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} outerRadius={100} dataKey="value">
+              <Pie data={taskStatusChartData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={5} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
                 {taskStatusChartData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
               </Pie>
-              <Tooltip contentStyle={{ background: 'var(--dh-card-bg)', border: '1px solid var(--dh-border)' }} />
+              <Tooltip contentStyle={{ background: 'var(--dh-card-bg)', border: '1px solid var(--dh-border)', borderRadius: '8px' }} />
             </PieChart>
           </ResponsiveContainer>
         </div>
 
         <div className="card">
           <h3 className="card-title">Submission Status</h3>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={280}>
             <PieChart>
-              <Pie data={submissionStatusChartData} cx="50%" cy="50%" labelLine={false} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} outerRadius={100} dataKey="value">
+              <Pie data={submissionStatusChartData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={5} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
                 {submissionStatusChartData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
               </Pie>
-              <Tooltip contentStyle={{ background: 'var(--dh-card-bg)', border: '1px solid var(--dh-border)' }} />
+              <Tooltip contentStyle={{ background: 'var(--dh-card-bg)', border: '1px solid var(--dh-border)', borderRadius: '8px' }} />
             </PieChart>
           </ResponsiveContainer>
-        </div>
+        </div> */}
 
-        <div className="card">
+        <div className="card" style={{ gridColumn: 'span 2' }}>
           <h3 className="card-title">Tasks by Category</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={categoryChartData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--dh-border)" />
-              <XAxis type="number" stroke="var(--dh-text)" />
-              <YAxis type="category" dataKey="name" stroke="var(--dh-text)" width={120} />
-              <Tooltip contentStyle={{ background: 'var(--dh-card-bg)', border: '1px solid var(--dh-border)' }} />
-              <Bar dataKey="value" radius={[0, 8, 8, 0]}>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={categoryChartData} layout="vertical" margin={{ left: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--dh-border)" horizontal={true} vertical={false} />
+              <XAxis type="number" stroke="var(--dh-text)" tick={{ fontSize: 12 }} />
+              <YAxis type="category" dataKey="name" stroke="var(--dh-text)" width={150} tick={{ fontSize: 12 }} />
+              <Tooltip contentStyle={{ background: 'var(--dh-card-bg)', border: '1px solid var(--dh-border)', borderRadius: '8px' }} />
+              <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={30}>
                 {categoryChartData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
               </Bar>
             </BarChart>
@@ -205,42 +199,60 @@ export default function Dashboard() {
 
         <div className="card">
           <h3 className="card-title">Top Earners</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={topUsersData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--dh-border)" />
-              <XAxis dataKey="name" stroke="var(--dh-text)" angle={-45} textAnchor="end" height={80} />
-              <YAxis stroke="var(--dh-text)" />
-              <Tooltip contentStyle={{ background: 'var(--dh-card-bg)', border: '1px solid var(--dh-border)' }} formatter={(value) => `₦${value.toLocaleString()}`} />
-              <Bar dataKey="earnings" fill="#10b981" radius={[8, 8, 0, 0]} />
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={topUsersData} margin={{ bottom: 60 }}>
+              <defs>
+                <linearGradient id="earningsGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10b981" stopOpacity={0.8} />
+                  <stop offset="100%" stopColor="#10b981" stopOpacity={0.3} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--dh-border)" vertical={false} />
+              <XAxis dataKey="name" stroke="var(--dh-text)" angle={-45} textAnchor="end" height={80} tick={{ fontSize: 11 }} />
+              <YAxis stroke="var(--dh-text)" tick={{ fontSize: 12 }} />
+              <Tooltip contentStyle={{ background: 'var(--dh-card-bg)', border: '1px solid var(--dh-border)', borderRadius: '8px' }} formatter={(value) => `₦${value.toLocaleString()}`} />
+              <Bar dataKey="earnings" fill="url(#earningsGradient)" radius={[8, 8, 0, 0]} barSize={40} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
         <div className="card">
-          <h3 className="card-title">Top Spending Advertisers</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={topAdvertisersData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--dh-border)" />
-              <XAxis dataKey="name" stroke="var(--dh-text)" angle={-45} textAnchor="end" height={80} />
-              <YAxis stroke="var(--dh-text)" />
-              <Tooltip contentStyle={{ background: 'var(--dh-card-bg)', border: '1px solid var(--dh-border)' }} formatter={(value) => `₦${value.toLocaleString()}`} />
-              <Bar dataKey="spent" fill="#ff6b35" radius={[8, 8, 0, 0]} />
+          <h3 className="card-title">Top Spending Employers</h3>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={topAdvertisersData} margin={{ bottom: 60 }}>
+              <defs>
+                <linearGradient id="spentGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#ff6b35" stopOpacity={0.8} />
+                  <stop offset="100%" stopColor="#ff6b35" stopOpacity={0.3} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--dh-border)" vertical={false} />
+              <XAxis dataKey="name" stroke="var(--dh-text)" angle={-45} textAnchor="end" height={80} tick={{ fontSize: 11 }} />
+              <YAxis stroke="var(--dh-text)" tick={{ fontSize: 12 }} />
+              <Tooltip contentStyle={{ background: 'var(--dh-card-bg)', border: '1px solid var(--dh-border)', borderRadius: '8px' }} formatter={(value) => `₦${value.toLocaleString()}`} />
+              <Bar dataKey="spent" fill="url(#spentGradient)" radius={[8, 8, 0, 0]} barSize={40} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="card">
-          <h3 className="card-title">User Task Performance</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={topUsersData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--dh-border)" />
-              <XAxis dataKey="name" stroke="var(--dh-text)" angle={-45} textAnchor="end" height={80} />
-              <YAxis stroke="var(--dh-text)" />
-              <Tooltip contentStyle={{ background: 'var(--dh-card-bg)', border: '1px solid var(--dh-border)' }} />
-              <Bar dataKey="tasks" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+        {/* <div className="card">
+          <h3 className="card-title">Worker Task Performance</h3>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={topUsersData} margin={{ bottom: 60 }}>
+              <defs>
+                <linearGradient id="tasksGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.8} />
+                  <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.3} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--dh-border)" vertical={false} />
+              <XAxis dataKey="name" stroke="var(--dh-text)" angle={-45} textAnchor="end" height={80} tick={{ fontSize: 11 }} />
+              <YAxis stroke="var(--dh-text)" tick={{ fontSize: 12 }} />
+              <Tooltip contentStyle={{ background: 'var(--dh-card-bg)', border: '1px solid var(--dh-border)', borderRadius: '8px' }} />
+              <Bar dataKey="tasks" fill="url(#tasksGradient)" radius={[8, 8, 0, 0]} barSize={40} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </div> */}
       </div>
     </div>
   );
