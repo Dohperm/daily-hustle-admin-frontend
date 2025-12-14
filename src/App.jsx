@@ -14,6 +14,9 @@ import Withdrawals from "./pages/Withdrawals";
 import TaskDetail from "./pages/TaskDetail";
 import TaskSubmissions from "./pages/TaskSubmissions";
 import SubmissionDetail from "./pages/SubmissionDetail";
+import Support from "./pages/Support";
+import SupportDetail from "./pages/SupportDetail";
+import ThirdPartySupport from "./pages/ThirdPartySupport";
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -61,6 +64,9 @@ export default function App() {
         <Route path="tasks/:id" element={<TaskDetail />} />
         <Route path="tasks/:id/submissions" element={<TaskSubmissions />} />
         <Route path="submissions/:id" element={<SubmissionDetail />} />
+        <Route path="support" element={<Support />} />
+        <Route path="support/:id" element={<SupportDetail />} />
+        <Route path="third-party-support" element={<ThirdPartySupport />} />
       </Route>
       </Routes>
     </>

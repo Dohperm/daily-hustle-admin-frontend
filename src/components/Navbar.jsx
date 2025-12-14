@@ -64,6 +64,16 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
           <i className="fas fa-money-bill-wave"></i>
           <span>Withdrawals</span>
         </NavLink>
+        
+        <NavLink to="/support" className="nav-link">
+          <i className="fas fa-headset"></i>
+          <span>Support</span>
+        </NavLink>
+        
+        <NavLink to="/third-party-support" className="nav-link">
+          <i className="fas fa-plug"></i>
+          <span>Third-Party Support</span>
+        </NavLink>
       </div>
       
       <div className="theme-toggle-container">
