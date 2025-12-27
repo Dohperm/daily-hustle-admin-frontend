@@ -65,6 +65,11 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
           <span>Withdrawals</span>
         </NavLink>
         
+        <NavLink to="/kyc" className="nav-link">
+          <i className="fas fa-id-card"></i>
+          <span>KYC</span>
+        </NavLink>
+        
         <NavLink to="/support" className="nav-link">
           <i className="fas fa-headset"></i>
           <span>Support</span>

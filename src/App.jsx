@@ -17,6 +17,7 @@ import SubmissionDetail from "./pages/SubmissionDetail";
 import Support from "./pages/Support";
 import SupportDetail from "./pages/SupportDetail";
 import ThirdPartySupport from "./pages/ThirdPartySupport";
+import KYC from "./pages/KYC";
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -67,6 +68,7 @@ export default function App() {
         <Route path="support" element={<Support />} />
         <Route path="support/:id" element={<SupportDetail />} />
         <Route path="third-party-support" element={<ThirdPartySupport />} />
+        <Route path="kyc" element={<KYC />} />
       </Route>
       </Routes>
     </>
