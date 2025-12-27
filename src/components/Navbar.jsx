@@ -2,11 +2,13 @@ import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useState, useEffect } from "react";
 import LogoutModal from "./LogoutModal";
+import { api } from "../services/api";
 
 export default function Navbar({ sidebarOpen, setSidebarOpen }) {
   const { logout } = useAuth();
   const [isDark, setIsDark] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [kycPendingCount, setKycPendingCount] = useState(0);
 
   useEffect(() => {
     const saved = localStorage.getItem('theme');
@@ -14,6 +16,7 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
       setIsDark(true);
       document.body.classList.add('dark');
     }
+    fetchKycPendingCount();
   }, []);
 
   const toggleTheme = () => {
@@ -25,6 +28,15 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
     } else {
       document.body.classList.remove('dark');
       localStorage.setItem('theme', 'light');
+    }
+  };
+
+  const fetchKycPendingCount = async () => {
+    try {
+      const response = await api.get('/users/kyc/pending-count/admins');
+      setKycPendingCount(response.data.data.count || 0);
+    } catch (error) {
+      console.error('Error fetching KYC pending count:', error);
     }
   };
 
@@ -68,6 +80,11 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
         <NavLink to="/kyc" className="nav-link">
           <i className="fas fa-id-card"></i>
           <span>KYC</span>
+          {kycPendingCount > 0 && (
+            <span className="badge badge-danger" style={{ marginLeft: 'auto', fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+              {kycPendingCount}
+            </span>
+          )}
         </NavLink>
         
         <NavLink to="/support" className="nav-link">
