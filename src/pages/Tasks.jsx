@@ -933,36 +933,6 @@ export default function Tasks() {
                 </div>
               </div>
 
-              {/* Payment Summary */}
-              {form.amount_per_worker && form.workers_needed && (() => {
-                const apw = parseFloat(form.amount_per_worker) || 0;
-                const wn = parseInt(form.workers_needed, 10) || 0;
-                const sub = apw * wn;
-                const fee = sub * 0.15;
-                const tot = sub + fee;
-                return (
-                  <div className="payment-summary">
-                    <h4 className="payment-summary-title">Payment Summary</h4>
-                    <div className="payment-summary-row">
-                      <span>Workers Needed</span>
-                      <span>{wn.toLocaleString()}</span>
-                    </div>
-                    <div className="payment-summary-row">
-                      <span>Amount Per Worker</span>
-                      <span>NGN {apw.toLocaleString()}</span>
-                    </div>
-                    <div className="payment-summary-row">
-                      <span>Platform Fee (15%)</span>
-                      <span>NGN {fee.toLocaleString()}</span>
-                    </div>
-                    <div className="payment-summary-row payment-summary-total">
-                      <span>Total Amount</span>
-                      <span>NGN {tot.toLocaleString()}</span>
-                    </div>
-                  </div>
-                );
-              })()}
-
               {/* Min Duration */}
               <div className="form-group">
                 <label className="form-label">
@@ -1122,6 +1092,36 @@ export default function Tasks() {
                   style={{ background: 'var(--dh-hover)', cursor: 'not-allowed', opacity: 0.7 }}
                 />
               </div>
+
+              {/* Payment Summary */}
+              {form.amount_per_worker && form.workers_needed && (() => {
+                const apw = parseFloat(form.amount_per_worker) || 0;
+                const wn = parseInt(form.workers_needed, 10) || 0;
+                const sub = apw * wn;
+                const fee = sub * 0.15;
+                const tot = sub + fee;
+                return (
+                  <div className="payment-summary">
+                    <h4 className="payment-summary-title">Payment Summary</h4>
+                    <div className="payment-summary-row">
+                      <span>Workers Needed</span>
+                      <span>{wn.toLocaleString()}</span>
+                    </div>
+                    <div className="payment-summary-row">
+                      <span>Amount Per Worker</span>
+                      <span>NGN {apw.toLocaleString()}</span>
+                    </div>
+                    <div className="payment-summary-row">
+                      <span>Platform Fee (15%)</span>
+                      <span>NGN {fee.toLocaleString()}</span>
+                    </div>
+                    <div className="payment-summary-row payment-summary-total">
+                      <span>Total Amount</span>
+                      <span>NGN {tot.toLocaleString()}</span>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Footer */}
               <div className="drawer-footer">
