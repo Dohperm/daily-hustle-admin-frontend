@@ -96,6 +96,11 @@ export default function Navbar({ sidebarOpen, setSidebarOpen }) {
           <i className="fas fa-plug"></i>
           <span>Third-Party Support</span>
         </NavLink>
+        
+        <NavLink to="/notification-broadcast" className="nav-link">
+          <i className="fas fa-bullhorn"></i>
+          <span>Notification Broadcast</span>
+        </NavLink>
       </div>
       
       <div className="theme-toggle-container">

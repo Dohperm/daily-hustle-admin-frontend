@@ -18,6 +18,7 @@ import Support from "./pages/Support";
 import SupportDetail from "./pages/SupportDetail";
 import ThirdPartySupport from "./pages/ThirdPartySupport";
 import KYC from "./pages/KYC";
+import NotificationBroadcast from "./pages/NotificationBroadcast";
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -69,6 +70,7 @@ export default function App() {
         <Route path="support/:id" element={<SupportDetail />} />
         <Route path="third-party-support" element={<ThirdPartySupport />} />
         <Route path="kyc" element={<KYC />} />
+        <Route path="notification-broadcast" element={<NotificationBroadcast />} />
       </Route>
       </Routes>
     </>

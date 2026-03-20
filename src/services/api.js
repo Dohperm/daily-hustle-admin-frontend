@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { toast } from '../components/Toast'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
 
@@ -17,6 +18,50 @@ api.interceptors.request.use((config) => {
   }
   return config
 })
+
+// Session expiry handler
+function handleSessionExpiry() {
+  console.log('Session expiry detected - clearing auth data and redirecting')
+  
+  // Clear all auth data
+  localStorage.removeItem('adminToken')
+  sessionStorage.clear()
+  
+  // Show notification
+  toast.error('Session expired. Please log in again.')
+  
+  // Redirect to login page
+  window.location.href = '/login'
+}
+
+// Global response interceptor for session expiry handling
+api.interceptors.response.use(
+  (response) => {
+    // Only check for session expiry if the response data exists and has the exact structure
+    if (response.data && 
+        typeof response.data === 'object' && 
+        response.data.status === 440 && 
+        response.data.message === 'Session Expired.') {
+      console.log('Session expiry detected in successful response:', response.data)
+      handleSessionExpiry()
+      return Promise.reject(new Error('Session Expired'))
+    }
+    return response
+  },
+  (error) => {
+    // Check for session expiry in error responses
+    if (error.response && 
+        error.response.data && 
+        typeof error.response.data === 'object' &&
+        error.response.data.status === 440 && 
+        error.response.data.message === 'Session Expired.') {
+      console.log('Session expiry detected in error response:', error.response.data)
+      handleSessionExpiry()
+      return Promise.reject(new Error('Session Expired'))
+    }
+    return Promise.reject(error)
+  }
+)
 
 // Users API
 export const usersAPI = {
@@ -58,6 +103,19 @@ export const advertisersAPI = {
   getById: (id) => api.get(`/advertisers/${id}/admins`),
   getStats: () => api.get('/advertisers/stats/admins'),
   update: (id, data) => api.patch(`/advertisers/${id}/admins`, data),
+}
+
+// Notifications API
+export const notificationsAPI = {
+  sendToUser: (data) => api.post('/notifications/send', data),
+}
+
+// Notification Broadcast API
+export const notificationBroadcastAPI = {
+  getAll: (params) => api.get('/notification-broadcast', { params }),
+  getById: (id) => api.get(`/notification-broadcast/${id}`),
+  create: (data) => api.post('/notification-broadcast', data),
+  update: (id, data) => api.patch(`/notification-broadcast/${id}`, data),
 }
 
 export { api, API_BASE_URL }
