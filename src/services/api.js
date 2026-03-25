@@ -118,5 +118,11 @@ export const notificationBroadcastAPI = {
   update: (id, data) => api.patch(`/notification-broadcast/${id}`, data),
 }
 
+// Settings API
+export const settingsAPI = {
+  getAll: (params) => api.get('/settings', { params }),
+  update: (id, data) => api.patch(`/settings/${id}`, data),
+}
+
 export { api, API_BASE_URL }
 export default api
